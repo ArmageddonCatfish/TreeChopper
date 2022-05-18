@@ -1,0 +1,5 @@
+Add GUI where user can toggle if they have hook, how long to delay, what buttons bind to what, UI scaling, slot Axe is in
+    Need binds for forward, back, jump, smart cursor, autoselect, and grapple
+
+Add button and/or timeout to stop button
+After correcting movement, move mouse to right and handle smart cursor and autoselect to make mining the tree less sensitive
