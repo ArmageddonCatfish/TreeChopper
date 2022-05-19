@@ -1,0 +1,35 @@
+General
+
+setOnAction(e -> [lambda expression]) used for if a button is pressed
+
+CheckBox
+
+constructor takes name of box, sets this to side of box
+setSelected() to determine if checked is default
+isSelected() to return boolean of if checked
+
+
+ChoiceBox<T>
+
+getItems().add() adds to ObservableList for more items to choose from
+getItems().addAll() does multiple items at once
+setValue() sets your default
+getValue() takes selected value
+
+ComboBox<T>
+
+like ChoiceBox<T>
+setPromptText() sets a text as a prompt instead of a value as the "default"
+setOnAction() does an option after having selected an item
+setEditable(true) lets user type in their own value as well
+
+TextField
+
+only takes Strings
+setPromptText() is grey text
+constructor can take a string, which acts as default text
+getText() retrieves String
+
+GridPane
+
+

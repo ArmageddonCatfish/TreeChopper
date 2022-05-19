@@ -1,6 +1,6 @@
-package src;
-
 import javafx.application.Application;
+import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.layout.StackPane;
@@ -13,10 +13,10 @@ Add GUI where user can toggle if they have hook, how long to delay, what buttons
 Add button and/or timeout to stop button
 */
 
-public class UserGUI extends Application {
+public class UserGUI extends Application implements EventHandler<ActionEvent> {
 
     Button button;
-
+    
     private static final int WIDTH = 500;
     private static final int HEIGHT = 300;
     private static final String STAGE_TITLE = "Tree Chopper Bot";
@@ -29,6 +29,7 @@ public class UserGUI extends Application {
     public void start(Stage primaryStage) throws Exception {
         button = new Button();
         button.setText("Click me");
+        button.setOnAction(e -> newMethod());
 
         primaryStage.setTitle(STAGE_TITLE);
         StackPane layout = new StackPane();
@@ -38,5 +39,14 @@ public class UserGUI extends Application {
         primaryStage.setScene(scene);
         primaryStage.show();
     }
-    
+
+    private void newMethod() {
+        System.out.println("Yoohoo!");
+    }
+
+    @Override
+    public void handle(ActionEvent arg0) {
+        // TODO Auto-generated method stub
+        
+    }
 }

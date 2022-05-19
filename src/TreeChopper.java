@@ -1,4 +1,3 @@
-package src;
 import java.awt.AWTException;
 import java.awt.Color;
 import java.awt.Robot;
