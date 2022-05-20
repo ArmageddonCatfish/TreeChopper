@@ -4,6 +4,10 @@ import java.awt.Robot;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 
+import lc.kra.system.keyboard.GlobalKeyboardHook;
+import lc.kra.system.keyboard.event.GlobalKeyAdapter;
+import lc.kra.system.keyboard.event.GlobalKeyEvent;
+
 /*
     Assumes UI scaling is at 100%
     Assumes Axe is slot 0
@@ -27,27 +31,66 @@ public class TreeChopper {
     final static private int AXE_Y = 25;
     final static private int BLOCK_SIZE = 15;
 
-    final static private int AUTOSELECT = KeyEvent.VK_TAB;
-    final static private int SMART_CURSOR = KeyEvent.VK_CONTROL;
+    static private int AUTOSELECT;
+    static private int SMART_CURSOR;
+    static private int LEFT;
+    static private int RIGHT;
+    static private int JUMP;
+    static private int GRAPPLE;
 
-    private static boolean hasHook = false;
+    private static boolean hasHook;
+    private static boolean hasBoots;
 
     static private Robot bot;
+    static private boolean activated = false;
+    static private boolean started;
+    static private GlobalKeyboardHook keyboardHook;
 
-    public static void main (String[] args) throws AWTException {
-        final int START_DELAY = 1000;
-        bot = new Robot();
-        bot.delay(START_DELAY);
-        startChopper();
+    public static void initiateBot(boolean boots, boolean grapple) throws AWTException {
+        // Only one is allowed
+        if (!activated) {
+            keyboardHook = new GlobalKeyboardHook(true);
+            AUTOSELECT = KeyEvent.VK_TAB;
+            SMART_CURSOR = KeyEvent.VK_CONTROL;
+            LEFT = KeyEvent.VK_A;
+            RIGHT = KeyEvent.VK_D;
+            JUMP = KeyEvent.VK_SPACE;
+            GRAPPLE = KeyEvent.VK_E;
+            hasHook = grapple;
+            hasBoots = boots;
+            activated = true;
+            started = false;
+            bot = new Robot();
+            initializeHook();
+            startChopper();
+        }
     }
 
     
+    private static void initializeHook() {
+        keyboardHook.addKeyListener(new GlobalKeyAdapter() {
+
+            public void keyPressed(GlobalKeyEvent event) {
+				if (event.getVirtualKeyCode() == GlobalKeyEvent.VK_UP) {
+					started = true;
+				} else if (event.getVirtualKeyCode() == GlobalKeyEvent.VK_DOWN) {
+                    activated = false;
+                    killBot();
+                }
+			}
+        });
+    }
+
+
     // Main method
     private static void startChopper() {
+        while(!started) {
+
+        }
         initializingKeystrokes();
         situateMouse();
-        while (true) {
-            bot.keyPress(KeyEvent.VK_D);
+        while (started) {
+            bot.keyPress(RIGHT);
             while (!axeSelected()) {
                 // Will continue walking until axe lights up
             }
@@ -60,22 +103,23 @@ public class TreeChopper {
 
     // Corrects for how the character slides upon stopping
     private static void correctPosition() {
-        bot.keyRelease(KeyEvent.VK_D);
+        bot.keyRelease(RIGHT);
         if (hasHook) {
             grappleInPlace();
         } else {
             final int NO_HOOK_WALK_CORRECTION = 550;
-            holdKey(NO_HOOK_WALK_CORRECTION, KeyEvent.VK_A);
+            holdKey(LEFT ,NO_HOOK_WALK_CORRECTION);
         }        
     }
 
     // Moves mouse to feet and grapples to floor
     private static void grappleInPlace() {
+        final int GRAPPLE_DELAY = 200;
         bot.mouseMove(FEET_X - BLOCK_SIZE / 2, FEET_Y);
-        tapKey(KeyEvent.VK_E);
-        bot.delay(200);
+        tapKey(GRAPPLE);
+        bot.delay(GRAPPLE_DELAY);
         bot.mouseMove(FEET_X, FEET_Y);
-        tapKey(KeyEvent.VK_SPACE);
+        tapKey(JUMP);
     }
 
 
@@ -129,7 +173,7 @@ public class TreeChopper {
     // Backs up a bit, giving wood time to fall and correcting over- and undershoots
     private static void repositionBeforeAdvancing() {
         final int MS_WALKING = 500;
-        holdKey(KeyEvent.VK_A, MS_WALKING);
+        holdKey(LEFT, MS_WALKING);
     }
 
     // Presses a key for what is intended to be an instantaneous amount of time
@@ -144,4 +188,20 @@ public class TreeChopper {
         bot.delay(time);
         bot.keyRelease(keyMask);
     }
+
+    // Releases all keys that could have been held and kills
+    public static void killBot() {
+        bot.keyRelease(AUTOSELECT);
+        tapKey(SMART_CURSOR);
+        bot.keyRelease(LEFT);
+        bot.keyRelease(RIGHT);
+        bot.keyRelease(JUMP);
+        bot.keyRelease(GRAPPLE);
+        bot.mouseRelease(InputEvent.BUTTON1_DOWN_MASK);
+        activated = false;
+        keyboardHook.shutdownHook();
+        System.exit(0);
+    }
+
+
 }

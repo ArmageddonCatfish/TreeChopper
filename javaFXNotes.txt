@@ -1,35 +1,59 @@
 General
+launch(args) will call the start(Stage primaryStage) method, your init
+Stage refers to entire block window along with close and minimize buttons
+Scene has actually content within it
 
+Stage 
+setScene() will choose which scene to put in it
+setTitle() will choose name of the window as it opens (next to close buttons)
+
+Scene
+Scene takes GridPane in constructor, then size in pixels
+takes layout in constructor, then size. Will affect size of Stage
+show() will display to the user
+
+Button
+setText() puts text on button, also goes in constructor
 setOnAction(e -> [lambda expression]) used for if a button is pressed
 
-CheckBox
+StackPane
+just puts element right in the middle
+getChildren().add() will insert the element into the layout
 
+
+Label
+on constructor has its text
+sort of just shows text
+
+CheckBox
 constructor takes name of box, sets this to side of box
 setSelected() to determine if checked is default
 isSelected() to return boolean of if checked
 
 
 ChoiceBox<T>
-
 getItems().add() adds to ObservableList for more items to choose from
 getItems().addAll() does multiple items at once
 setValue() sets your default
 getValue() takes selected value
 
 ComboBox<T>
-
 like ChoiceBox<T>
 setPromptText() sets a text as a prompt instead of a value as the "default"
 setOnAction() does an option after having selected an item
 setEditable(true) lets user type in their own value as well
 
 TextField
-
 only takes Strings
 setPromptText() is grey text
 constructor can take a string, which acts as default text
 getText() retrieves String
 
 GridPane
+setPadding(new Insets()) takes right, bottom, left, top padding in pixels along window. 10 good
+setVgap() and setHgap() sets side spacing. 8 and 10 good
+setConstraints() takes element to add, then c and r indices. 
+getChildren().addAll() will actually insert them after being specced by setConstraints
 
-
+KeyStroke
+getKeyStroke() takes either char or String and returns corresponding KeyStroke object
