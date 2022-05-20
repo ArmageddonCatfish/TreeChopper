@@ -29,7 +29,11 @@ public class TreeChopper {
     final static private int FEET_Y = 555;
     final static private int AXE_X = 433;
     final static private int AXE_Y = 25;
-    final static private int BLOCK_SIZE = 15;
+    final static private int TRUNK_OUTLINE_X = 953;
+    final static private int TRUNK_OUTLINE_Y = 518;
+    final static private int BLOCK_SIZE = 16;
+    private static final int THRESHOLD = 35;
+    private static final int GRAPPLE_DELAY = 200;
 
     static private int AUTOSELECT;
     static private int SMART_CURSOR;
@@ -37,6 +41,7 @@ public class TreeChopper {
     static private int RIGHT;
     static private int JUMP;
     static private int GRAPPLE;
+    private static boolean currentlyHooked;
 
     private static boolean hasHook;
     private static boolean hasBoots;
@@ -88,7 +93,7 @@ public class TreeChopper {
 
         }
         initializingKeystrokes();
-        situateMouse();
+        mouseToFeet();
         while (started) {
             bot.keyPress(RIGHT);
             while (!axeSelected()) {
@@ -105,21 +110,45 @@ public class TreeChopper {
     private static void correctPosition() {
         bot.keyRelease(RIGHT);
         if (hasHook) {
-            grappleInPlace();
+            grappleSlightLeft();
+            if (atRoot()) {
+                // Need to walk right one tile, this would put us above the trunk
+                ungrapple();
+                grappleOneTileRight();
+            } 
         } else {
             final int NO_HOOK_WALK_CORRECTION = 550;
             holdKey(LEFT ,NO_HOOK_WALK_CORRECTION);
-        }        
+        }   
+    
     }
 
-    // Moves mouse to feet and grapples to floor
-    private static void grappleInPlace() {
-        final int GRAPPLE_DELAY = 200;
+
+    private static boolean atRoot() {
+        final int[] TREE_OUTLINE = {58, 48, 42};
+        final int[] FAT_TREE = {120, 85, 60};
+        int[] currentRGB = getColorArray(bot.getPixelColor(TRUNK_OUTLINE_X, TRUNK_OUTLINE_Y));
+        boolean atNormalTree = colorWithinThreshold(TREE_OUTLINE, currentRGB, THRESHOLD);
+        boolean atFatTree = colorWithinThreshold(FAT_TREE, currentRGB, THRESHOLD);
+        return !(atNormalTree || atFatTree);
+    }
+
+    private static void grappleOneTileRight() {
+        bot.mouseMove(FEET_X + BLOCK_SIZE, FEET_Y);
+        tapKey(GRAPPLE);
+        currentlyHooked = true;
+        mouseToFeet();
+        bot.delay(GRAPPLE_DELAY); // Needed to give bot time to travel 
+    }
+
+
+    // Moves mouse half a tile to the left and shoots hook
+    private static void grappleSlightLeft() {
         bot.mouseMove(FEET_X - BLOCK_SIZE / 2, FEET_Y);
         tapKey(GRAPPLE);
-        bot.delay(GRAPPLE_DELAY);
-        bot.mouseMove(FEET_X, FEET_Y);
-        tapKey(JUMP);
+        currentlyHooked = true;
+        mouseToFeet();
+        bot.delay(GRAPPLE_DELAY); // Needed to give bot time to travel 
     }
 
 
@@ -130,29 +159,32 @@ public class TreeChopper {
     }
 
     // Moves mouse to the character's feet
-    private static void situateMouse() {
+    private static void mouseToFeet() {
         bot.mouseMove(FEET_X, FEET_Y);
     }
 
     // Retrieves the pixel to determine if the axe has been autoselected
     private static boolean axeSelected() {
-        final int THRESHOLD = 35;
-        final int[] targetRGB = {255, 253, 76};
-        int[] currentRGB = new int[3];
-        Color pixel = bot.getPixelColor(AXE_X, AXE_Y);
-        currentRGB[0] = pixel.getRed();
-        currentRGB[1] = pixel.getGreen();
-        currentRGB[2] = pixel.getBlue();
+        final int[] ACTIVATED_HOTBAR = {255, 253, 76};
+        int[] currentRGB = getColorArray(bot.getPixelColor(AXE_X, AXE_Y));
+        return colorWithinThreshold(ACTIVATED_HOTBAR, currentRGB, THRESHOLD);
+    }
+
+    private static int[] getColorArray(Color pixel) {
+        int[] result = new int[3];
+        result[0] = pixel.getRed();
+        result[1] = pixel.getGreen();
+        result[2] = pixel.getBlue();
+        return result;
+    }
+
+    private static boolean colorWithinThreshold(int[] target, int[] current, int threshold) {
         for (int i = 0; i < 3; i++) {
-            if (!colorWithinThreshold(targetRGB[i], currentRGB[i], THRESHOLD)) {
+            if (!(current[i] <= (target[i] + threshold) && current[i] >= (target[i] - threshold))) {
                 return false;
             }
         }
         return true;
-    }
-
-    private static boolean colorWithinThreshold(int target, int current, int threshold) {
-        return (current <= (target + threshold) && current >= (target - threshold));
     } 
 
     // Holds left click in short intervals until axe is no longer selected
@@ -172,8 +204,16 @@ public class TreeChopper {
 
     // Backs up a bit, giving wood time to fall and correcting over- and undershoots
     private static void repositionBeforeAdvancing() {
+        if (hasHook) {
+            ungrapple();
+        }
         final int MS_WALKING = 500;
         holdKey(LEFT, MS_WALKING);
+    }
+
+    private static void ungrapple() {
+        tapKey(JUMP);
+        currentlyHooked = false;
     }
 
     // Presses a key for what is intended to be an instantaneous amount of time
@@ -191,11 +231,15 @@ public class TreeChopper {
 
     // Releases all keys that could have been held and kills
     public static void killBot() {
+        if (currentlyHooked) {
+            ungrapple();
+        } else {
+            bot.keyRelease(JUMP);
+        }
         bot.keyRelease(AUTOSELECT);
         tapKey(SMART_CURSOR);
         bot.keyRelease(LEFT);
         bot.keyRelease(RIGHT);
-        bot.keyRelease(JUMP);
         bot.keyRelease(GRAPPLE);
         bot.mouseRelease(InputEvent.BUTTON1_DOWN_MASK);
         activated = false;
