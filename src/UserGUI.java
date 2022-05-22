@@ -8,6 +8,7 @@ import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.Label;
 import javafx.scene.layout.GridPane;
+import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
 
 /*
@@ -21,46 +22,48 @@ public class UserGUI extends Application {
 
     Button button;
     
-    private static final int WIDTH = 460;
-    private static final int HEIGHT = 200;
+    private static final int WIDTH = 650;
+    private static final int HEIGHT = 225;
+    private static final int COLUMNS_FOR_USER_INFO = 3;
     private static final String STAGE_TITLE = "Tree Chopper Bot";
     private static final int INTERNAL_PADDING = 10;
     private static final int VGAP = 8;
     private static final int HGAP = 10;
 
-    private static CheckBox hermes;
+    private static Status botStatus;
+
+    private static CheckBox optimizations;
     private static CheckBox hook;
 
     private static Stage primaryStage;
 
-    private static ArrayList<javafx.scene.Node> elementHolder;
+    private static ArrayList<javafx.scene.Node> togglesHolder;
 
 
     public static void main(String[] args) {
-        elementHolder = new ArrayList<>();
+        togglesHolder = new ArrayList<>();
         launch(args);
     }
 
     @Override
     public void start(Stage primaryStage) throws Exception {
+        
         UserGUI.primaryStage = primaryStage; 
         GridPane internal = initializeGridPane();
 
         Label userInfo = new Label(new IntroText().toString());
-        hermes = new CheckBox("Do you have Hermes boots?");
-        hook = new CheckBox("Do you have a grappling hook?");
+        optimizations = intiializeOptimizationBox();
+        hook = new CheckBox("Does this character have a grappling hook? Bot will run much more consistently with one.");
         Button launcher = setLauncher();
 
-        GridPane.setConstraints(userInfo, 0, 0);
-        GridPane.setConstraints(hermes, 0, 3);
-        GridPane.setConstraints(hook, 0, 4);
-        GridPane.setConstraints(launcher, 0, 6);
+        togglesHolder.add(optimizations);
+        togglesHolder.add(hook);
 
-        elementHolder.add(hermes);
-        elementHolder.add(hook);
-        elementHolder.add(userInfo);
-        elementHolder.add(launcher);
-        internal.getChildren().addAll(elementHolder);
+        addToggles(userInfo);
+        GridPane.setConstraints(launcher, 0, COLUMNS_FOR_USER_INFO+togglesHolder.size()+2);
+                
+        internal.getChildren().addAll(togglesHolder);
+        internal.getChildren().addAll(userInfo, launcher);
 
         Scene options = new Scene(internal, WIDTH, HEIGHT);
         primaryStage.setTitle(STAGE_TITLE);
@@ -68,6 +71,21 @@ public class UserGUI extends Application {
         primaryStage.show();
     }
 
+    // Scalable method that adds all CheckBoxes in togglesHolder() to the GridPane
+    private void addToggles(Label userInfo) {
+        GridPane.setConstraints(userInfo, 0, 0);
+        for (int i = 0; i < togglesHolder.size(); i++) {
+            GridPane.setConstraints(togglesHolder.get(i), 0, COLUMNS_FOR_USER_INFO+i);
+        }
+
+
+    }
+
+    private CheckBox intiializeOptimizationBox() {
+        CheckBox result = new CheckBox("Enable root optimizations? Chops default trees faster but will fail on cacti, other trees, etc.");
+        result.setSelected(true);
+        return result;
+    }
 
     private Button setLauncher() {
         Button result = new Button();
@@ -83,8 +101,14 @@ public class UserGUI extends Application {
     }
 
     private static void launchBot() throws AWTException {
-        primaryStage.close();
-        TreeChopper.initiateBot(hermes.isSelected(), hook.isSelected());
+        boolean optimize = optimizations.isSelected();
+        boolean hasHook = hook.isSelected();
+        StackPane launchedScreen = new StackPane();
+        Label launchedInfo = new Label("Bot launched. Start with up, kill with down");
+        launchedScreen.getChildren().add(launchedInfo);
+        Scene botStarting = new Scene(launchedScreen, 500, 200);
+        primaryStage.setScene(botStarting);
+        TreeChopper.initiateBot(optimize, hasHook);
     }
 
     private GridPane initializeGridPane() {

@@ -44,14 +44,14 @@ public class TreeChopper {
     private static boolean currentlyHooked;
 
     private static boolean hasHook;
-    private static boolean hasBoots;
+    private static boolean rootOptimizations;
 
     static private Robot bot;
     static private boolean activated = false;
     static private boolean started;
     static private GlobalKeyboardHook keyboardHook;
 
-    public static void initiateBot(boolean boots, boolean grapple) throws AWTException {
+    public static void initiateBot(boolean optimize, boolean grapple) throws AWTException {
         // Only one is allowed
         if (!activated) {
             keyboardHook = new GlobalKeyboardHook(true);
@@ -62,7 +62,7 @@ public class TreeChopper {
             JUMP = KeyEvent.VK_SPACE;
             GRAPPLE = KeyEvent.VK_E;
             hasHook = grapple;
-            hasBoots = boots;
+            rootOptimizations = optimize;
             activated = true;
             started = false;
             bot = new Robot();
@@ -111,19 +111,24 @@ public class TreeChopper {
         bot.keyRelease(RIGHT);
         if (hasHook) {
             grappleSlightLeft();
-            if (atRoot()) {
+            if (rootOptimizations && atRoot()) {
                 // Need to walk right one tile, this would put us above the trunk
                 ungrapple();
                 grappleOneTileRight();
             } 
         } else {
-            final int NO_HOOK_WALK_CORRECTION = 550;
-            holdKey(LEFT ,NO_HOOK_WALK_CORRECTION);
+            final int SLIDE_UNDER_TRUNK = 500;
+            bot.keyPress(LEFT);
+            while (!atRoot()) {
+                // walks left until at a tree
+            }
+            bot.delay(SLIDE_UNDER_TRUNK);
+            bot.keyRelease(LEFT);
         }   
     
     }
 
-
+    // returns true if not directly under main trunk of tree
     private static boolean atRoot() {
         final int[] TREE_OUTLINE = {58, 48, 42};
         final int[] FAT_TREE = {120, 85, 60};

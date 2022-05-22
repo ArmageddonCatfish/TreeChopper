@@ -1,4 +1,19 @@
-Add keybinds to GUI
-    Need binds for forward, back, jump, smart cursor, autoselect, and grapple
+TODO
+Add multithreading to let bot launched window stay responding
 
 Add wrapper to export as .exe
+
+RESOLVED
+Add another window after launching that shows the bot's status
+    public updateStatus() method in gui class called at various points by the bot
+    just to make the bot more understandable to end user
+    works but stops responding, need to implement more multithreading
+Make non-hook position correction more accurate
+    Walk until no longer "at root", walk some more, swing until broken
+    Adjusted and is now satisfactory
+Make work without torches
+    Toggle smart select in between swings when you dont have any
+    Nah you just straight up need at least one torch in ur inventory at all times to properly deselect the axe after chopping
+Add keybinds to GUI
+    Need binds for forward, back, jump, smart cursor, autoselect, and grapple
+    largely unnecessary and technically demanding, just have client do these bindings beforehand 
